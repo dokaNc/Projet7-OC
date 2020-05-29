@@ -38,7 +38,7 @@ class Phone
     private $description;
 
     /**
-     * @ORM\Column(type="decimal", precision=2, scale=2)
+     * @ORM\Column(type="decimal", precision=6, scale=2)
      */
     private $price;
 
