@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=PhoneRepository::class)
@@ -19,26 +20,31 @@ class Phone
 
     /**
      * @ORM\Column(type="string", length=100)
+     * @Assert\NotBlank
      */
     private $brand;
 
     /**
      * @ORM\Column(type="string", length=100)
+     * @Assert\NotBlank
      */
     private $model;
 
     /**
      * @ORM\Column(type="string", length=50)
+     * @Assert\NotBlank
      */
     private $color;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\NotBlank
      */
     private $description;
 
     /**
      * @ORM\Column(type="decimal", precision=6, scale=2)
+     * @Assert\NotBlank
      */
     private $price;
 
