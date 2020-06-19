@@ -173,6 +173,9 @@
     "ocramius/proxy-manager": {
         "version": "2.2.3"
     },
+    "pagerfanta/pagerfanta": {
+        "version": "v2.3.0"
+    },
     "php": {
         "version": "7.3"
     },
@@ -233,6 +236,9 @@
     },
     "symfony/dependency-injection": {
         "version": "v4.4.8"
+    },
+    "symfony/deprecation-contracts": {
+        "version": "v2.1.2"
     },
     "symfony/doctrine-bridge": {
         "version": "v4.4.8"
@@ -361,6 +367,19 @@
     "symfony/stopwatch": {
         "version": "v4.4.8"
     },
+    "symfony/translation": {
+        "version": "3.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "3.3",
+            "ref": "2ad9d2545bce8ca1a863e50e92141f0b9d87ffcd"
+        },
+        "files": [
+            "./config/packages/translation.yaml",
+            "./translations/.gitignore"
+        ]
+    },
     "symfony/translation-contracts": {
         "version": "v2.0.1"
     },
@@ -422,6 +441,9 @@
     },
     "webmozart/assert": {
         "version": "1.8.0"
+    },
+    "white-october/pagerfanta-bundle": {
+        "version": "v1.3.2"
     },
     "willdurand/jsonp-callback-validator": {
         "version": "v1.1.0"
