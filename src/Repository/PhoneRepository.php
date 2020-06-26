@@ -4,6 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Phone;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -12,11 +14,33 @@ use Doctrine\Persistence\ManagerRegistry;
  * @method Phone[]    findAll()
  * @method Phone[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+
 class PhoneRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Phone::class);
+    }
+
+    public function findAllVisibleQuery(): Query
+    {
+        return $this->findVisibleQuery()
+            ->getQuery();
+    }
+
+    public function findLatest(): array
+    {
+        return $this->findVisibleQuery()
+            ->setMaxResults(4)
+            ->getQuery()
+            ->getResult();
+    }
+
+    private function findVisibleQuery(): QueryBuilder
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.brand = false');
+
     }
 
     // /**
