@@ -164,6 +164,12 @@
             "./config/packages/prod/jms_serializer.yaml"
         ]
     },
+    "knplabs/knp-components": {
+        "version": "v2.3.6"
+    },
+    "knplabs/knp-paginator-bundle": {
+        "version": "v5.2.0"
+    },
     "nikic/php-parser": {
         "version": "v4.4.0"
     },

@@ -3,43 +3,81 @@
 namespace App\Controller;
 
 use App\Entity\Phone;
-use FOS\RestBundle\Controller\Annotations\Get;
-use FOS\RestBundle\Controller\Annotations\Post;
-use FOS\RestBundle\Controller\Annotations\View;
+use App\Repository\PhoneRepository;
+use FOS\RestBundle\Controller\Annotations as Rest;
+use FOS\RestBundle\View\View;
+use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Doctrine\ORM\EntityManagerInterface;
 
 
 class PhoneController extends AbstractController
 {
+    private $entityManager;
+
+    private $repository;
+
+    public function __construct(EntityManagerInterface $entityManager, PhoneRepository $repository)
+    {
+        $this->entityManager = $entityManager;
+        $this->repository = $repository;
+    }
+
     /**
-     * @Get(
+     * @Rest\Get(
+     *     path = "/phones",
+     *     name = "app_phone_list",
+     *     requirements = {"id"="\d+"}
+     * )
+     * @param PaginatorInterface $paginator
+     * @param Request $request
+     * @return View
+     */
+    public function listAction(PaginatorInterface $paginator, Request $request)
+    {
+        $phone = $paginator->paginate(
+            $this->repository->findAllVisibleQuery(),
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        return View::create($phone);
+    }
+
+    /**
+     * @Rest\Get(
      *     path = "/phones/{id}",
      *     name = "app_phone_show",
      *     requirements = {"id"="\d+"}
      * )
-     * @View
+     * @param Phone $phone
+     * @return View
      */
     public function showAction(Phone $phone)
     {
-        return $phone;
+        return View::create($phone);
     }
 
     /**
-     * @Post(
-     *     path = "/phones",
-     *     name = "app_phone_create",
+     * @Rest\Post(
+     *    path = "/phones",
+     *    name = "app_phone_create"
      * )
-     * @View(StatusCode=201)
      * @ParamConverter("phone", converter="fos_rest.request_body")
+     * @param Phone $phone
+     * @return View
      */
     public function createAction(Phone $phone)
     {
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($phone);
-        $em->flush();
+
+        $this->entityManager->persist($phone);
+        $this->entityManager->flush();
+
+        return View::create($phone);
     }
 
 }
