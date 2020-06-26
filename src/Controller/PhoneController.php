@@ -45,7 +45,7 @@ class PhoneController extends AbstractController
             10
         );
 
-        return View::create($phone);
+        return View::create($phone, Response::HTTP_ACCEPTED);
     }
 
     /**
@@ -59,7 +59,7 @@ class PhoneController extends AbstractController
      */
     public function showAction(Phone $phone)
     {
-        return View::create($phone);
+        return View::create($phone, Response::HTTP_ACCEPTED);
     }
 
     /**
@@ -77,7 +77,10 @@ class PhoneController extends AbstractController
         $this->entityManager->persist($phone);
         $this->entityManager->flush();
 
-        return View::create($phone);
+        return View::create($phone, Response::HTTP_CREATED,
+            ['Location' => $this->generateUrl('app_phone_show',
+                ['id' => $phone->getId(), UrlGeneratorInterface::ABSOLUTE_URL])
+            ]);
     }
 
 }
