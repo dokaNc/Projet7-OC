@@ -141,4 +141,21 @@ class PhoneController extends AbstractController
         return View::create($phone, Response::HTTP_OK);
     }
 
+    /**
+     * @Rest\Delete(
+     *     path = "/phones/{id}",
+     *     name = "app_phone_delete",
+     *     requirements = {"id"="\d+"}
+     * )
+     * @param Phone $phone
+     * @return View
+     */
+    public function deleteAction(Phone $phone)
+    {
+        $this->entityManager->remove($phone);
+        $this->entityManager->flush();
+
+        return View::create($phone, Response::HTTP_NO_CONTENT);
+    }
+
 }
