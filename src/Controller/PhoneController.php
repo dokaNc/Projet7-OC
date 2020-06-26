@@ -104,4 +104,58 @@ class PhoneController extends AbstractController
             ]);
     }
 
+    /**
+     * @Rest\Put(
+     *     path = "/phones/{id}",
+     *     name = "app_phone_update",
+     *     requirements = {"id"="\d+"}
+     * )
+     * @ParamConverter("newPhone", converter="fos_rest.request_body")
+     * @param Phone $phone
+     * @param Phone $newPhone
+     * @param ConstraintViolationList $violations
+     * @return mixed
+     * @throws ResourceValidationException
+     */
+    public function updateAction(Phone $phone, Phone $newPhone, ConstraintViolationList $violations)
+    {
+        if (count($violations)) {
+            $message = 'The JSON sent contains invalid data: ';
+            foreach ($violations as $violation) {
+                $message .= sprintf("Field '%s': %s ",
+                    $violation->getPropertyPath(),
+                    $violation->getMessage());
+            }
+
+            throw new ResourceValidationException($message);
+        }
+
+        $phone->setBrand($newPhone->getBrand());
+        $phone->setModel($newPhone->getModel());
+        $phone->setColor($newPhone->getColor());
+        $phone->setDescription($newPhone->getDescription());
+        $phone->setPrice($newPhone->getPrice());
+
+        $this->getDoctrine()->getManager()->flush();
+
+        return View::create($phone, Response::HTTP_OK);
+    }
+
+    /**
+     * @Rest\Delete(
+     *     path = "/phones/{id}",
+     *     name = "app_phone_delete",
+     *     requirements = {"id"="\d+"}
+     * )
+     * @param Phone $phone
+     * @return View
+     */
+    public function deleteAction(Phone $phone)
+    {
+        $this->entityManager->remove($phone);
+        $this->entityManager->flush();
+
+        return View::create($phone, Response::HTTP_NO_CONTENT);
+    }
+
 }
