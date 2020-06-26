@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Phone;
+use App\Exception\ResourceValidationException;
 use App\Repository\PhoneRepository;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 
 class PhoneController extends AbstractController
@@ -67,12 +69,31 @@ class PhoneController extends AbstractController
      *    path = "/phones",
      *    name = "app_phone_create"
      * )
-     * @ParamConverter("phone", converter="fos_rest.request_body")
+     * @ParamConverter(
+     *     "phone",
+     *     converter="fos_rest.request_body",
+     *     options={
+     *         "validator"={ "groups"="Create" }
+     *     }
+     * )
      * @param Phone $phone
+     * @param ConstraintViolationList $violations
      * @return View
+     * @throws ResourceValidationException
      */
-    public function createAction(Phone $phone)
+    public function createAction(Phone $phone, ConstraintViolationList $violations)
     {
+        if (count($violations)) {
+            $message = 'The JSON sent contains invalid data: ';
+            foreach ($violations as $violation) {
+                $message .= sprintf(
+                    "Field '%s': %s ",
+                    $violation->getPropertyPath(),
+                    $violation->getMessage());
+            }
+
+            throw new ResourceValidationException($message);
+        }
 
         $this->entityManager->persist($phone);
         $this->entityManager->flush();
