@@ -69,6 +69,7 @@ class PhoneController extends AbstractController
      *    path = "/phones",
      *    name = "app_phone_create"
      * )
+     *
      * @ParamConverter(
      *     "phone",
      *     converter="fos_rest.request_body",
