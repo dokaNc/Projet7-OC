@@ -12,7 +12,13 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
+/**
+ * Class RegistrationController
+ * @package App\Controller
+ */
 
 class RegistrationController extends AbstractController
 {
@@ -56,11 +62,10 @@ class RegistrationController extends AbstractController
     public function registerAction(User $newUser, Request $request)
     {
         $email = $request->get('email');
-        $password = $request->get('password');
 
         $user = $this->userRepository->findOneBy([
             'email' => $email,
-        ]);
+            ]);
 
         if (!is_null($user)) {
             return View::create([
@@ -72,12 +77,12 @@ class RegistrationController extends AbstractController
 
         $user->setEmail($newUser->getEmail());
         $user->setPassword(
-            $this->passwordEncoder->encodePassword($user, $password)
+                $this->passwordEncoder->encodePassword($newUser, ($newUser->getPassword()))
         );
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return View::create($user, Response::HTTP_CREATED);
+        return View::create($user, Response::HTTP_OK);
     }
 }
