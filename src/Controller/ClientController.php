@@ -8,6 +8,7 @@ use App\Entity\Client;
 use App\Exception\ResourceValidationException;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -38,6 +39,7 @@ class ClientController extends AbstractController
      *     name = "app_client_list",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @return View
      */
     public function listAction()
@@ -55,6 +57,7 @@ class ClientController extends AbstractController
      *     name = "app_client_show",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @param Client $client
      * @return View
      */
@@ -75,6 +78,7 @@ class ClientController extends AbstractController
      *         "validator"={ "groups"="Create" }
      *     }
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @param Client $client
      * @param ConstraintViolationList $violations
      * @return View
@@ -109,6 +113,7 @@ class ClientController extends AbstractController
      *     name = "app_client_update",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @ParamConverter("newClient", converter="fos_rest.request_body")
      * @param Client $client
      * @param Client $newClient
@@ -142,6 +147,7 @@ class ClientController extends AbstractController
      *     name = "app_client_delete",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @param Client $client
      * @return View
      */
