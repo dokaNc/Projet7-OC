@@ -8,6 +8,7 @@ use App\Repository\PhoneRepository;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Knp\Component\Pager\PaginatorInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -83,6 +84,7 @@ class PhoneController extends AbstractController
      *         "validator"={ "groups"="Create" }
      *     }
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @param Phone $phone
      * @param ConstraintViolationList $violations
      * @return View
@@ -117,6 +119,7 @@ class PhoneController extends AbstractController
      *     name = "app_phone_update",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @ParamConverter("newPhone", converter="fos_rest.request_body")
      * @param Phone $phone
      * @param Phone $newPhone
@@ -154,6 +157,7 @@ class PhoneController extends AbstractController
      *     name = "app_phone_delete",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_ADMIN")
      * @param Phone $phone
      * @return View
      */
