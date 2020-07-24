@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Context\Context;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
+use http\Message;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,28 +57,16 @@ class RegistrationController extends AbstractController
      *     }
      * )
      * @param User $newUser
-     * @param Request $request
      * @return View
      */
-    public function registerAction(User $newUser, Request $request)
+    public function registerAction(User $newUser)
     {
-        $email = $request->get('email');
-
-        $user = $this->userRepository->findOneBy([
-            'email' => $email,
-            ]);
-
-        if (!is_null($user)) {
-            return View::create([
-                'message' => 'User already exist'
-            ], Response::HTTP_CONFLICT);
-        }
-
         $user = new User();
 
         $user->setEmail($newUser->getEmail());
+        $user->setRoles(['ROLE_USER']);
         $user->setPassword(
-                $this->passwordEncoder->encodePassword($newUser, ($newUser->getPassword()))
+            $this->passwordEncoder->encodePassword($newUser, ($newUser->getPassword()))
         );
 
         $this->entityManager->persist($user);
