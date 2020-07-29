@@ -38,19 +38,20 @@ class PhoneController extends AbstractController
 
     /**
      * @Rest\Get(
-     *     path = "/phones",
+     *     path = "/phones/{page<\d+>?1}",
      *     name = "app_phone_list",
      *     requirements = {"id"="\d+"}
      * )
      * @param PaginatorInterface $paginator
-     * @param Request $request
+     * @param $page
      * @return View
      */
-    public function listAction(PaginatorInterface $paginator, Request $request)
+    public function listAction(PaginatorInterface $paginator, $page)
     {
+
         $phone = $paginator->paginate(
-            $this->repository->findAllVisibleQuery(),
-            $request->query->getInt('page', 1),
+            $this->repository->findAll(),
+            $page,
             10
         );
 
