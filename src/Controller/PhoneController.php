@@ -60,7 +60,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Rest\Get(
-     *     path = "/phones/{id}",
+     *     path = "/phone/{id}",
      *     name = "app_phone_show",
      *     requirements = {"id"="\d+"}
      * )
@@ -74,7 +74,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Rest\Post(
-     *    path = "/phones",
+     *    path = "/phone",
      *    name = "app_phone_create"
      * )
      *
@@ -116,7 +116,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Rest\Put(
-     *     path = "/phones/{id}",
+     *     path = "/phone/{id}",
      *     name = "app_phone_update",
      *     requirements = {"id"="\d+"}
      * )
@@ -154,7 +154,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Rest\Delete(
-     *     path = "/phones/{id}",
+     *     path = "/phone/{id}",
      *     name = "app_phone_delete",
      *     requirements = {"id"="\d+"}
      * )
