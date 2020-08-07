@@ -71,7 +71,6 @@ class ClientController extends AbstractController
             );
         }
 
-
         return View::create($client, Response::HTTP_ACCEPTED);
     }
 
