@@ -45,4 +45,21 @@ class UserController extends AbstractController
     {
         return View::create($user, Response::HTTP_ACCEPTED);
     }
+
+    /**
+     * @Rest\Delete(
+     *     path = "/user/{id}",
+     *     name = "app_user_delete",
+     *     requirements = {"id"="\d+"}
+     * )
+     * @param User $user
+     * @return View
+     */
+    public function deleteAction(User $user)
+    {
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
+
+        return View::create($user, Response::HTTP_NO_CONTENT);
+    }
 }
