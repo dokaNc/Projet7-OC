@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Phone;
 use App\Exception\ResourceValidationException;
 use App\Repository\PhoneRepository;
+use App\Service\PhoneService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Knp\Component\Pager\PaginatorInterface;
@@ -30,10 +31,15 @@ class PhoneController extends AbstractController
 
     private $repository;
 
-    public function __construct(EntityManagerInterface $entityManager, PhoneRepository $repository)
+    private $phoneService;
+
+    public function __construct(EntityManagerInterface $entityManager,
+                                PhoneRepository $repository,
+                                PhoneService $phoneService)
     {
         $this->entityManager = $entityManager;
         $this->repository = $repository;
+        $this->phoneService = $phoneService;
     }
 
     /**
@@ -42,20 +48,13 @@ class PhoneController extends AbstractController
      *     name = "app_phone_list",
      *     requirements = {"id"="\d+"}
      * )
-     * @param PaginatorInterface $paginator
      * @param $page
      * @return View
      */
-    public function listAction(PaginatorInterface $paginator, $page)
+    public function listAction($page)
     {
-
-        $phone = $paginator->paginate(
-            $this->repository->findAll(),
-            $page,
-            10
-        );
-
-        return View::create($phone, Response::HTTP_ACCEPTED);
+        $data = $this->phoneService->getAllData($page);
+        return View::create($data,Response::HTTP_ACCEPTED);
     }
 
     /**
@@ -64,6 +63,7 @@ class PhoneController extends AbstractController
      *     name = "app_phone_show",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param Phone $phone
      * @return View
      */
@@ -77,7 +77,6 @@ class PhoneController extends AbstractController
      *    path = "/phone",
      *    name = "app_phone_create"
      * )
-     *
      * @ParamConverter(
      *     "phone",
      *     converter="fos_rest.request_body",
@@ -85,28 +84,14 @@ class PhoneController extends AbstractController
      *         "validator"={ "groups"="Create" }
      *     }
      * )
-     * @IsGranted("ROLE_ADMIN")
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param Phone $phone
-     * @param ConstraintViolationList $violations
+     * @param $violations
      * @return View
-     * @throws ResourceValidationException
      */
-    public function createAction(Phone $phone, ConstraintViolationList $violations)
+    public function createAction(Phone $phone, $violations)
     {
-        if (count($violations)) {
-            $message = 'The JSON sent contains invalid data: ';
-            foreach ($violations as $violation) {
-                $message .= sprintf(
-                    "Field '%s': %s ",
-                    $violation->getPropertyPath(),
-                    $violation->getMessage());
-            }
-
-            throw new ResourceValidationException($message);
-        }
-
-        $this->entityManager->persist($phone);
-        $this->entityManager->flush();
+        $this->phoneService->addData($phone, $violations);
 
         return View::create($phone, Response::HTTP_CREATED,
             ['Location' => $this->generateUrl('app_phone_show',
@@ -120,7 +105,7 @@ class PhoneController extends AbstractController
      *     name = "app_phone_update",
      *     requirements = {"id"="\d+"}
      * )
-     * @IsGranted("ROLE_ADMIN")
+     * @IsGranted("ROLE_SUPERADMIN")
      * @ParamConverter("newPhone", converter="fos_rest.request_body")
      * @param Phone $phone
      * @param Phone $newPhone
@@ -130,24 +115,13 @@ class PhoneController extends AbstractController
      */
     public function updateAction(Phone $phone, Phone $newPhone, ConstraintViolationList $violations)
     {
-        if (count($violations)) {
-            $message = 'The JSON sent contains invalid data: ';
-            foreach ($violations as $violation) {
-                $message .= sprintf("Field '%s': %s ",
-                    $violation->getPropertyPath(),
-                    $violation->getMessage());
-            }
-
-            throw new ResourceValidationException($message);
-        }
+        $this->phoneService->updateData($violations);
 
         $phone->setBrand($newPhone->getBrand());
         $phone->setModel($newPhone->getModel());
         $phone->setColor($newPhone->getColor());
         $phone->setDescription($newPhone->getDescription());
         $phone->setPrice($newPhone->getPrice());
-
-        $this->getDoctrine()->getManager()->flush();
 
         return View::create($phone, Response::HTTP_OK);
     }
