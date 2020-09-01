@@ -8,8 +8,11 @@ use App\Entity\Client;
 use App\Entity\User;
 use App\Exception\ResourceValidationException;
 use App\Repository\ClientRepository;
+use App\Service\ClientService;
+use App\Service\ExceptionService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
+use Knp\Component\Pager\Pagination\PaginationInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -21,25 +24,40 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\ConstraintViolationList;
+
 /**
  * Class ClientController
  * @package App\Controller
  * @Route("/api")
  */
-
-
 class ClientController extends AbstractController
 {
+    /**
+     * @var EntityManagerInterface
+     */
     private $entityManager;
     /**
      * @var ClientRepository
      */
     private $repository;
+    /**
+     * @var ExceptionService
+     */
+    private $exceptionService;
+    /**
+     * @var ClientService
+     */
+    private $clientService;
 
-    public function __construct(EntityManagerInterface $entityManager, ClientRepository $repository)
+    public function __construct(EntityManagerInterface $entityManager,
+                                ClientRepository $repository,
+                                ExceptionService $exceptionService,
+                                ClientService $clientService)
     {
         $this->entityManager = $entityManager;
         $this->repository = $repository;
+        $this->exceptionService = $exceptionService;
+        $this->clientService = $clientService;
     }
 
     /**
@@ -49,29 +67,18 @@ class ClientController extends AbstractController
      *     requirements = {"id"="\d+"}
      * )
      * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
-     * @param PaginatorInterface $paginator
      * @param $page
      * @return View
      */
-    public function listUserClientAction(PaginatorInterface $paginator, $page)
+    public function listUserClientAction($page)
     {
         if ($this->isGranted('ROLE_ADMIN')) {
-            $client = $paginator->paginate(
-                $this->repository->findBy(
-                    ['id' => $this->getUser()->getClients()]
-                ),
-                $page,
-                10
-            );
+            $data = $this->clientService->getAllDataByClients($page);
         } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
-            $client = $paginator->paginate(
-                $this->repository->findAll(),
-                $page,
-                10
-            );
+            $data = $this->clientService->getAllData($page);
         }
 
-        return View::create($client, Response::HTTP_ACCEPTED);
+        return View::create($data, Response::HTTP_ACCEPTED);
     }
 
     /**
@@ -80,6 +87,8 @@ class ClientController extends AbstractController
      *     name = "app_client_show",
      *     requirements = {"id"="\d+"}
      * )
+     * @
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param Client $client
      * @return View
      */
@@ -100,28 +109,15 @@ class ClientController extends AbstractController
      *         "validator"={ "groups"="Create" }
      *     }
      * )
-     * @IsGranted("ROLE_ADMIN")
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param Client $client
-     * @param ConstraintViolationList $violations
+     * @param $violations
      * @return View
      * @throws ResourceValidationException
      */
-    public function createAction(Client $client, ConstraintViolationList $violations)
+    public function createAction(Client $client, $violations)
     {
-        if (count($violations)) {
-            $message = 'The JSON sent contains invalid data: ';
-            foreach ($violations as $violation) {
-                $message .= sprintf(
-                    "Field '%s': %s ",
-                    $violation->getPropertyPath(),
-                    $violation->getMessage());
-            }
-
-            throw new ResourceValidationException($message);
-        }
-
-        $this->entityManager->persist($client);
-        $this->entityManager->flush();
+        $this->clientService->addData($client, $violations);
 
         return View::create($client, Response::HTTP_CREATED,
             ['Location' => $this->generateUrl('app_client_show',
@@ -135,30 +131,21 @@ class ClientController extends AbstractController
      *     name = "app_client_update",
      *     requirements = {"id"="\d+"}
      * )
-     * @IsGranted("ROLE_ADMIN")
-     * @ParamConverter("newClient", converter="fos_rest.request_body")
+     * @IsGranted("ROLE_SUPERADMIN")
+     * @ParamConverter(
+     *     "newClient",
+     *     converter="fos_rest.request_body"
+     * )
      * @param Client $client
      * @param Client $newClient
-     * @param ConstraintViolationList $violations
+     * @param $violations
      * @return mixed
      * @throws ResourceValidationException
      */
-    public function updateAction(Client $client, Client $newClient, ConstraintViolationList $violations)
+    public function updateAction(Client $client, Client $newClient, $violations)
     {
-        if (count($violations)) {
-            $message = 'The JSON sent contains invalid data: ';
-            foreach ($violations as $violation) {
-                $message .= sprintf("Field '%s': %s ",
-                    $violation->getPropertyPath(),
-                    $violation->getMessage());
-            }
-
-            throw new ResourceValidationException($message);
-        }
-
+        $this->clientService->updateData($violations);
         $client->setName($newClient->getName());
-
-        $this->getDoctrine()->getManager()->flush();
 
         return View::create($client, Response::HTTP_OK);
     }
