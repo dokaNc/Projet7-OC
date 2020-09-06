@@ -87,7 +87,6 @@ class ClientController extends AbstractController
      *     name = "app_client_show",
      *     requirements = {"id"="\d+"}
      * )
-     * @
      * @IsGranted("ROLE_SUPERADMIN")
      * @param Client $client
      * @return View
@@ -144,8 +143,7 @@ class ClientController extends AbstractController
      */
     public function updateAction(Client $client, Client $newClient, $violations)
     {
-        $this->clientService->updateData($violations);
-        $client->setName($newClient->getName());
+        $this->clientService->updateData($violations, $client, $newClient);
 
         return View::create($client, Response::HTTP_OK);
     }
@@ -156,14 +154,13 @@ class ClientController extends AbstractController
      *     name = "app_client_delete",
      *     requirements = {"id"="\d+"}
      * )
-     * @IsGranted("ROLE_ADMIN")
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param Client $client
      * @return View
      */
     public function deleteAction(Client $client)
     {
-        $this->entityManager->remove($client);
-        $this->entityManager->flush();
+        $this->clientService->deleteData($client);
 
         return View::create($client, Response::HTTP_NO_CONTENT);
     }
