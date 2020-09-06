@@ -26,15 +26,12 @@ class Service extends AbstractController
 
     private $exceptionService;
 
-    private $client;
-
     private $entityManager;
 
     public function __construct(PhoneRepository $phoneRepository,
                                 ClientRepository $clientRepository,
                                 PaginatorInterface $paginatorInterface,
                                 ExceptionService $exceptionService,
-                                Client $client,
                                 EntityManagerInterface $entityManager
                                 )
     {
@@ -42,7 +39,6 @@ class Service extends AbstractController
         $this->clientRepository = $clientRepository;
         $this->paginatorInterface = $paginatorInterface;
         $this->exceptionService = $exceptionService;
-        $this->client = $client;
         $this->entityManager = $entityManager;
     }
 
@@ -90,13 +86,9 @@ class Service extends AbstractController
     }
 
     /**
-     * @param $violations
-     * @throws ResourceValidationException
      */
-    public function update($violations)
+    public function update()
     {
-        $this->exceptionService->invalidJson($violations);
         $this->getDoctrine()->getManager()->flush();
-
     }
 }
