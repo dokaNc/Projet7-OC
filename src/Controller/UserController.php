@@ -4,7 +4,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Exception\ResourceValidationException;
 use App\Repository\UserRepository;
+use App\Service\UserService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -32,12 +34,20 @@ class UserController extends AbstractController
      * @var UserPasswordEncoderInterface
      */
     private $passwordEncoder;
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $repository, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(EntityManagerInterface $entityManager,
+                                UserRepository $repository,
+                                UserPasswordEncoderInterface $passwordEncoder,
+                                UserService $userService)
     {
         $this->entityManager = $entityManager;
         $this->repository = $repository;
         $this->passwordEncoder = $passwordEncoder;
+        $this->userService = $userService;
     }
 
     /**
@@ -60,29 +70,18 @@ class UserController extends AbstractController
      *    name = "app_admin_add_user"
      * )
      * @ParamConverter(
-     *     "newUser",
-     *     converter="fos_rest.request_body",
-     *     options={
-     *         "validator"={ "groups"="Register" }
-     *     }
+     *     "user",
+     *     converter="fos_rest.request_body"
      * )
      * @IsGranted("ROLE_ADMIN")
-     * @param User $newUser
+     * @param User $user
+     * @param $violations
      * @return View
+     * @throws ResourceValidationException
      */
-    public function addUser(User $newUser)
+    public function addAction(User $user, $violations)
     {
-        $user = new User();
-
-        $user->setEmail($newUser->getEmail());
-        $user->setRoles(['ROLE_USER']);
-        $user->setPassword(
-            $this->passwordEncoder->encodePassword($newUser, ($newUser->getPassword()))
-        );
-        $user->setClients($this->getUser()->getClients());
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->userService->addUser($violations, $user);
 
         return View::create($user, Response::HTTP_OK);
     }
@@ -98,8 +97,7 @@ class UserController extends AbstractController
      */
     public function deleteAction(User $user)
     {
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
+        $this->userService->deleteData($user);
 
         return View::create($user, Response::HTTP_NO_CONTENT);
     }
