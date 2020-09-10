@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Exception\ResourceValidationException;
 use App\Repository\UserRepository;
+use App\Service\RegisterService;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Context\Context;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -37,12 +39,20 @@ class RegistrationController extends AbstractController
      * @var UserPasswordEncoderInterface
      */
     private $passwordEncoder;
+    /**
+     * @var RegisterService
+     */
+    private $registerService;
 
-    public function __construct(UserRepository $userRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function __construct(UserRepository $userRepository,
+                                UserPasswordEncoderInterface $passwordEncoder,
+                                EntityManagerInterface $entityManager,
+                                RegisterService $registerService)
     {
         $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
+        $this->registerService = $registerService;
     }
 
     /**
@@ -51,27 +61,17 @@ class RegistrationController extends AbstractController
      *    name = "app_register_create"
      * )
      * @ParamConverter(
-     *     "newUser",
-     *     converter="fos_rest.request_body",
-     *     options={
-     *         "validator"={ "groups"="Register" }
-     *     }
+     *     "user",
+     *     converter="fos_rest.request_body"
      * )
-     * @param User $newUser
+     * @param User $user
+     * @param $violations
      * @return View
+     * @throws ResourceValidationException
      */
-    public function registerAction(User $newUser)
+    public function registerAction(User $user, $violations)
     {
-        $user = new User();
-
-        $user->setEmail($newUser->getEmail());
-        $user->setRoles(['ROLE_USER']);
-        $user->setPassword(
-            $this->passwordEncoder->encodePassword($newUser, ($newUser->getPassword()))
-        );
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->registerService->addData($violations, $user);
 
         return View::create($user, Response::HTTP_OK);
     }
