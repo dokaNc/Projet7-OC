@@ -79,15 +79,13 @@ class PhoneController extends AbstractController
      * )
      * @ParamConverter(
      *     "phone",
-     *     converter="fos_rest.request_body",
-     *     options={
-     *         "validator"={ "groups"="Create" }
-     *     }
+     *     converter="fos_rest.request_body"
      * )
      * @IsGranted("ROLE_SUPERADMIN")
      * @param Phone $phone
      * @param $violations
      * @return View
+     * @throws ResourceValidationException
      */
     public function createAction(Phone $phone, $violations)
     {
@@ -106,22 +104,18 @@ class PhoneController extends AbstractController
      *     requirements = {"id"="\d+"}
      * )
      * @IsGranted("ROLE_SUPERADMIN")
-     * @ParamConverter("newPhone", converter="fos_rest.request_body")
+     * @ParamConverter("newPhone",
+     *     converter="fos_rest.request_body"
+     * )
      * @param Phone $phone
      * @param Phone $newPhone
-     * @param ConstraintViolationList $violations
+     * @param $violations
      * @return mixed
      * @throws ResourceValidationException
      */
-    public function updateAction(Phone $phone, Phone $newPhone, ConstraintViolationList $violations)
+    public function updateAction(Phone $phone, Phone $newPhone, $violations)
     {
-        $this->phoneService->updateData($violations);
-
-        $phone->setBrand($newPhone->getBrand());
-        $phone->setModel($newPhone->getModel());
-        $phone->setColor($newPhone->getColor());
-        $phone->setDescription($newPhone->getDescription());
-        $phone->setPrice($newPhone->getPrice());
+        $this->phoneService->updateData($violations, $phone, $newPhone);
 
         return View::create($phone, Response::HTTP_OK);
     }
