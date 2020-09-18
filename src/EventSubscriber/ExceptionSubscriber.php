@@ -16,7 +16,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
         if($exception instanceof NotFoundHttpException) {
             $data = [
                 'status' => $exception->getStatusCode(),
-                'message' => 'Ressource introuvable'
+                'message' => 'Resource not found'
             ];
 
             $response = new JsonResponse($data);
@@ -24,7 +24,7 @@ class ExceptionSubscriber implements EventSubscriberInterface
         } elseif ($exception instanceof AccessDeniedHttpException) {
             $data = [
                 'status' => $exception->getStatusCode(),
-                'message' => 'Accès refusé'
+                'message' => 'Access denied'
             ];
 
             $response = new JsonResponse($data);

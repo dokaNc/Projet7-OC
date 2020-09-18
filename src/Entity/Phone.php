@@ -21,28 +21,24 @@ class Phone
     /**
      * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank
-     * @Assert\NotBlank(groups={"Create"})
      */
     private $brand;
 
     /**
      * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank
-     * @Assert\NotBlank(groups={"Create"})
      */
     private $model;
 
     /**
      * @ORM\Column(type="string", length=50)
      * @Assert\NotBlank
-     * @Assert\NotBlank(groups={"Create"})
      */
     private $color;
 
     /**
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank
-     * @Assert\NotBlank(groups={"Create"})
      */
     private $description;
 

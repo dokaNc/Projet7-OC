@@ -5,25 +5,20 @@ namespace App\Controller;
 
 
 use App\Entity\Client;
-use App\Entity\User;
 use App\Exception\ResourceValidationException;
 use App\Repository\ClientRepository;
 use App\Service\ClientService;
 use App\Service\ExceptionService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
-use Knp\Component\Pager\Pagination\PaginationInterface;
-use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Validator\ConstraintViolationList;
 
 /**
  * Class ClientController
@@ -70,7 +65,7 @@ class ClientController extends AbstractController
      * @param $page
      * @return View
      */
-    public function listUserClientAction($page)
+    public function listAction($page)
     {
         if ($this->isGranted('ROLE_ADMIN')) {
             $data = $this->clientService->getAllDataByClients($page);
@@ -103,10 +98,7 @@ class ClientController extends AbstractController
      * )
      * @ParamConverter(
      *     "client",
-     *     converter="fos_rest.request_body",
-     *     options={
-     *         "validator"={ "groups"="Create" }
-     *     }
+     *     converter="fos_rest.request_body"
      * )
      * @IsGranted("ROLE_SUPERADMIN")
      * @param Client $client
@@ -116,7 +108,7 @@ class ClientController extends AbstractController
      */
     public function createAction(Client $client, $violations)
     {
-        $this->clientService->addData($client, $violations);
+        $this->clientService->addData($violations, $client);
 
         return View::create($client, Response::HTTP_CREATED,
             ['Location' => $this->generateUrl('app_client_show',

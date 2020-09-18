@@ -7,7 +7,10 @@ namespace App\Service;
 use App\Exception\ResourceValidationException;
 use Symfony\Component\Validator\ConstraintViolationList;
 
-
+/**
+ * Class ExceptionService
+ * @package App\Service
+ */
 class ExceptionService
 {
      /**
@@ -17,7 +20,7 @@ class ExceptionService
     public function invalidJson(ConstraintViolationList $violations)
     {
         if (count($violations)) {
-            $message = 'The JSON sent contains invalid data: ';
+            $message = 'The JSON sent contains invalid data. ';
             foreach ($violations as $violation) {
                 $message .= sprintf(
                     "Field '%s': %s ",

@@ -11,6 +11,7 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -56,6 +57,7 @@ class UserController extends AbstractController
      *     name = "app_user_show",
      *     requirements = {"id"="\d+"}
      * )
+     * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
      * @param User $user
      * @return View
      */
@@ -73,7 +75,7 @@ class UserController extends AbstractController
      *     "user",
      *     converter="fos_rest.request_body"
      * )
-     * @IsGranted("ROLE_ADMIN")
+     * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
      * @param User $user
      * @param $violations
      * @return View
@@ -92,6 +94,7 @@ class UserController extends AbstractController
      *     name = "app_user_delete",
      *     requirements = {"id"="\d+"}
      * )
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param User $user
      * @return View
      */
