@@ -49,8 +49,7 @@ class UserService extends Service
             $this->passwordEncoder->encodePassword(
                 $user, (
                     $user->getPassword()
-                )
-            )
+                ))
         );
         $user->setClients($this->getUser()->getClients());
 

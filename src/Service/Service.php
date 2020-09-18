@@ -3,29 +3,39 @@
 
 namespace App\Service;
 
-
-use App\Entity\Client;
-use App\Exception\ResourceValidationException;
 use App\Repository\ClientRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\View\View;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\PhoneRepository;
 use Knp\Component\Pager\Pagination\PaginationInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+
 
 class Service extends AbstractController
 {
+    /**
+     * @var PhoneRepository
+     */
     private $phoneRepository;
 
+    /**
+     * @var ClientRepository
+     */
     private $clientRepository;
 
+    /**
+     * @var PaginatorInterface
+     */
     private $paginatorInterface;
 
+    /**
+     * @var ExceptionService
+     */
     private $exceptionService;
 
+    /**
+     * @var EntityManagerInterface
+     */
     private $entityManager;
 
     public function __construct(PhoneRepository $phoneRepository,
@@ -54,6 +64,7 @@ class Service extends AbstractController
             $page,
             10
         );
+
     }
 
     /**
@@ -70,25 +81,5 @@ class Service extends AbstractController
             $page,
             10
         );
-    }
-
-    /**
-     * @param $data
-     * @param $violations
-     * @throws ResourceValidationException
-     */
-    public function add($data, $violations)
-    {
-        $this->exceptionService->invalidJson($violations);
-
-        $this->entityManager->persist($data);
-        $this->entityManager->flush();
-    }
-
-    /**
-     */
-    public function update()
-    {
-        $this->getDoctrine()->getManager()->flush();
     }
 }

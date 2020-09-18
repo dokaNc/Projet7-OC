@@ -6,9 +6,11 @@ namespace App\Service;
 
 use App\Entity\Client;
 use App\Exception\ResourceValidationException;
+use App\Repository\ClientRepository;
+use App\Repository\PhoneRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\Pagination\PaginationInterface;
-use App\Service\ExceptionService;
+use Knp\Component\Pager\PaginatorInterface;
 
 class ClientService extends Service
 {
@@ -18,7 +20,7 @@ class ClientService extends Service
     private $repositoryName = 'clientRepository';
 
     /**
-     * @var \App\Service\ExceptionService
+     * @var ExceptionService
      */
     private $exceptionService;
 
@@ -27,9 +29,10 @@ class ClientService extends Service
      */
     private $entityManager;
 
-    public function __construct(ExceptionService $exceptionService,
-                                EntityManagerInterface $entityManager)
+    public function __construct(PhoneRepository $phoneRepository, ClientRepository $clientRepository, PaginatorInterface $paginatorInterface, ExceptionService $exceptionService, EntityManagerInterface $entityManager)
     {
+        parent::__construct($phoneRepository, $clientRepository, $paginatorInterface, $exceptionService, $entityManager);
+
         $this->exceptionService = $exceptionService;
         $this->entityManager = $entityManager;
     }
@@ -53,13 +56,19 @@ class ClientService extends Service
     }
 
     /**
-     * @param $data
      * @param $violations
+     * @param Client $client
+     * @return void
      * @throws ResourceValidationException
      */
-    public function addData($data, $violations)
+    public function addData($violations, Client $client)
     {
-        return $this->add($data, $violations);
+        $this->exceptionService->invalidJson($violations);
+
+        $client->setName($client->getName());
+
+        $this->entityManager->persist($client);
+        $this->entityManager->flush();
     }
 
     /**
@@ -72,8 +81,10 @@ class ClientService extends Service
     public function updateData($violations, Client $client, Client $newClient)
     {
         $this->exceptionService->invalidJson($violations);
+
         $client->setName($newClient->getName());
-        return $this->update();
+
+        $this->getDoctrine()->getManager()->flush();
     }
 
     /**
