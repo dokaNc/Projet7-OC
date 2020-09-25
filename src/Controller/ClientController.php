@@ -19,6 +19,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 /**
  * Class ClientController
@@ -58,20 +62,16 @@ class ClientController extends AbstractController
     /**
      * @Rest\Get(
      *     path = "/clients/{page<\d+>?1}",
-     *     name = "app_client_user_list",
+     *     name = "app_clients_list",
      *     requirements = {"id"="\d+"}
      * )
-     * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
+     * @IsGranted("ROLE_SUPERADMIN")
      * @param $page
      * @return View
      */
     public function listAction($page)
     {
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $data = $this->clientService->getAllDataByClients($page);
-        } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
-            $data = $this->clientService->getAllData($page);
-        }
+        $data = $this->clientService->getAllData($page);
 
         return View::create($data, Response::HTTP_ACCEPTED);
     }

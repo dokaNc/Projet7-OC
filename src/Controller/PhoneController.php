@@ -51,6 +51,7 @@ class PhoneController extends AbstractController
     public function listAction($page)
     {
         $data = $this->phoneService->getAllData($page);
+
         return View::create($data,Response::HTTP_ACCEPTED);
     }
 

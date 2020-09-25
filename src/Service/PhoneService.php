@@ -8,6 +8,7 @@ use App\Entity\Phone;
 use App\Exception\ResourceValidationException;
 use App\Repository\ClientRepository;
 use App\Repository\PhoneRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\Pagination\PaginationInterface;
 use Knp\Component\Pager\PaginatorInterface;
@@ -29,9 +30,9 @@ class PhoneService extends Service
      */
     private $entityManager;
 
-    public function __construct(PhoneRepository $phoneRepository, ClientRepository $clientRepository, PaginatorInterface $paginatorInterface, ExceptionService $exceptionService, EntityManagerInterface $entityManager)
+    public function __construct(PhoneRepository $phoneRepository, ClientRepository $clientRepository, UserRepository $userRepository, PaginatorInterface $paginatorInterface, ExceptionService $exceptionService, EntityManagerInterface $entityManager)
     {
-        parent::__construct($phoneRepository, $clientRepository, $paginatorInterface, $exceptionService, $entityManager);
+        parent::__construct($phoneRepository, $clientRepository, $userRepository, $paginatorInterface, $exceptionService, $entityManager);
 
         $this->exceptionService = $exceptionService;
         $this->entityManager = $entityManager;
