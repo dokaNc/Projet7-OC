@@ -4,16 +4,22 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\EventSubscriber\ExceptionSubscriber;
 use App\Exception\ResourceValidationException;
 use App\Repository\UserRepository;
 use App\Service\UserService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
+use Knp\Component\Pager\Paginator;
+use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -53,23 +59,47 @@ class UserController extends AbstractController
 
     /**
      * @Rest\Get(
+     *     path = "/users/{page<\d+>?1}",
+     *     name = "app_users_list",
+     *     requirements = {"id"="\d+"}
+     * )
+     * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
+     * @param $page
+     * @return View
+     */
+    public function listAction($page)
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            $data = $this->userService->getAllDataClient($page);
+        } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
+            $data = $this->userService->getAllData($page);
+        }
+
+        return View::create($data, Response::HTTP_ACCEPTED);
+    }
+
+    /**
+     * @Rest\Get(
      *     path = "/user/{id}",
      *     name = "app_user_show",
      *     requirements = {"id"="\d+"}
      * )
      * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
+     * @param int $id
      * @param User $user
      * @return View
      */
-    public function showAction(User $user)
+    public function showAction(int $id, User $user)
     {
+        $this->userService->getData($user, $id);
+
         return View::create($user, Response::HTTP_ACCEPTED);
     }
 
     /**
      * @Rest\Post(
-     *    path = "/admin/add/user",
-     *    name = "app_admin_add_user"
+     *    path = "/user",
+     *    name = "app_add_user"
      * )
      * @ParamConverter(
      *     "user",
@@ -83,7 +113,7 @@ class UserController extends AbstractController
      */
     public function addAction(User $user, $violations)
     {
-        $this->userService->addUser($violations, $user);
+        $this->userService->addUser($user, $violations);
 
         return View::create($user, Response::HTTP_OK);
     }
@@ -94,7 +124,7 @@ class UserController extends AbstractController
      *     name = "app_user_delete",
      *     requirements = {"id"="\d+"}
      * )
-     * @IsGranted("ROLE_SUPERADMIN")
+     * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
      * @param User $user
      * @return View
      */

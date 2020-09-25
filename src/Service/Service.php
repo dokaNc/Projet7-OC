@@ -4,6 +4,7 @@
 namespace App\Service;
 
 use App\Repository\ClientRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\PhoneRepository;
@@ -37,9 +38,14 @@ class Service extends AbstractController
      * @var EntityManagerInterface
      */
     private $entityManager;
+    /**
+     * @var UserRepository
+     */
+    private $userRepository;
 
     public function __construct(PhoneRepository $phoneRepository,
                                 ClientRepository $clientRepository,
+                                UserRepository $userRepository,
                                 PaginatorInterface $paginatorInterface,
                                 ExceptionService $exceptionService,
                                 EntityManagerInterface $entityManager
@@ -50,6 +56,7 @@ class Service extends AbstractController
         $this->paginatorInterface = $paginatorInterface;
         $this->exceptionService = $exceptionService;
         $this->entityManager = $entityManager;
+        $this->userRepository = $userRepository;
     }
 
     /**
