@@ -35,20 +35,31 @@ Create the database using the file found in the folder ``sql/api_bilemo.sql``.
 
 Modify the accesses to your database in the file ``.env [DATABASE_URL] (line 28)``.  
 
-### - Step 7  
+### - Step 7
+
+Modify 'JWT_PASSPHRASE' in the file ``.env [JWT_PASSPHRASE] (line 34)``
+
+### - Step 8
+
+Generate the SSH keys:
+``$ mkdir -p config/jwt``
+``$ openssl genpkey -out config/jwt/private.pem -aes256 -algorithm rsa -pkeyopt rsa_keygen_bits:4096``
+``$ openssl pkey -in config/jwt/private.pem -out config/jwt/public.pem -pubout``
+
+### - Step 9  
 
 Install the "Postman" software to use the API.
 www.postman.com/downloads
 
-### - Step 8  
+### - Step 10  
 
 Using Postman, create a new "user" via the following link: ``/api/register``  
 
-### - Step 9  
+### - Step 11  
 
 From ``PHPMYADMIN``, modify the "roles" column of your "user" account by ``["ROLE_SUPERADMIN"]`` to have full access to the API.   
 
-### - Step 10
+### - Step 12
 
 You can now use the API by referring to the documentation.
 ``/doc``
