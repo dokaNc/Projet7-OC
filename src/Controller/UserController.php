@@ -99,7 +99,7 @@ class UserController extends AbstractController
     /**
      * @Rest\Post(
      *    path = "/user",
-     *    name = "app_add_user"
+     *    name = "app_user_create"
      * )
      * @ParamConverter(
      *     "user",

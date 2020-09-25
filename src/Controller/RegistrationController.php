@@ -73,6 +73,6 @@ class RegistrationController extends AbstractController
     {
         $this->registerService->addData($violations, $user);
 
-        return View::create($user, Response::HTTP_OK);
+        return View::create($user, Response::HTTP_CREATED);
     }
 }
