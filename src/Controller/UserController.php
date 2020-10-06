@@ -63,7 +63,7 @@ class UserController extends AbstractController
      * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
      *
      * @OA\Response(
-     *      response="202",
+     *      response="200",
      *      description="List Users",
      *      @OA\JsonContent(
      *           type="array",
@@ -109,7 +109,7 @@ class UserController extends AbstractController
             $data = $this->userService->getAllData($page);
         }
 
-        return View::create($data, Response::HTTP_ACCEPTED);
+        return View::create($data, Response::HTTP_OK);
     }
 
     /**
@@ -121,7 +121,7 @@ class UserController extends AbstractController
      * @Security("is_granted('ROLE_ADMIN') or is_granted('ROLE_SUPERADMIN')")
      *
      * @OA\Response(
-     *      response="202",
+     *      response="200",
      *      description="Detail User",
      *      @OA\JsonContent(
      *           type="array",
@@ -164,7 +164,7 @@ class UserController extends AbstractController
     {
         $this->userService->getData($user, $id);
 
-        return View::create($user, Response::HTTP_ACCEPTED);
+        return View::create($user, Response::HTTP_OK);
     }
 
     /**

@@ -50,7 +50,7 @@ class PhoneController extends AbstractController
      * )
      *
      * @OA\Response(
-     *      response="202",
+     *      response="200",
      *      description="List Phones",
      *      @OA\JsonContent(
      *           type="array",
@@ -92,7 +92,7 @@ class PhoneController extends AbstractController
     {
         $data = $this->phoneService->getAllData($page);
 
-        return View::create($data,Response::HTTP_ACCEPTED);
+        return View::create($data,Response::HTTP_OK);
     }
 
     /**
@@ -103,7 +103,7 @@ class PhoneController extends AbstractController
      * )
      *
      * @OA\Response(
-     *      response="202",
+     *      response="200",
      *      description="Detail Phone",
      *      @OA\JsonContent(
      *           type="array",
@@ -143,7 +143,7 @@ class PhoneController extends AbstractController
      */
     public function showAction(Phone $phone)
     {
-        return View::create($phone, Response::HTTP_ACCEPTED);
+        return View::create($phone, Response::HTTP_OK);
     }
 
     /**
