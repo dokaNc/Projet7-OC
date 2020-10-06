@@ -6,6 +6,7 @@ use App\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use OpenApi\Annotations as OA;
 
 /**
  * @ORM\Entity(repositoryClass=PhoneRepository::class)
@@ -15,8 +16,11 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      href = @Hateoas\Route(
  *          "app_phone_show",
  *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      )
+ *          absolute = true,
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(null === object.getId())"
+ *     )
  * )
  *
  * @Hateoas\Relation(
@@ -38,7 +42,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          absolute = true
  *      ),
  *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN'))"
+ *          excludeIf = "expr(null === object.getId())"
  *      )
  * )
  *
@@ -50,13 +54,16 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          absolute = true
  *      ),
  *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN'))"
+ *          excludeIf = "expr(null === object.getId())"
  *      )
  * )
+ *
+ * @OA\Schema(schema="Phone")
  */
 class Phone
 {
     /**
+     * @OA\Property(type="integer", description="The ID")
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -64,33 +71,37 @@ class Phone
     private $id;
 
     /**
+     * @OA\Property(type="string", description="The brand")
      * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank
      */
     private $brand;
 
     /**
+     * @OA\Property(type="string", description="The model")
      * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank
      */
     private $model;
 
     /**
+     * @OA\Property(type="string", description="The color")
      * @ORM\Column(type="string", length=50)
      * @Assert\NotBlank
      */
     private $color;
 
     /**
+     * @OA\Property(type="string", description="The Description")
      * @ORM\Column(type="string", length=255)
      * @Assert\NotBlank
      */
     private $description;
 
     /**
+     * @OA\Property(type="integer", description="The price")
      * @ORM\Column(type="decimal", precision=6, scale=2)
      * @Assert\NotBlank
-     * @Assert\NotBlank(groups={"Create"})
      */
     private $price;
 

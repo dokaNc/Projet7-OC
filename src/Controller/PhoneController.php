@@ -15,6 +15,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Annotations as OA;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
 
 /**
  * Class PhoneController
@@ -41,10 +44,47 @@ class PhoneController extends AbstractController
 
     /**
      * @Rest\Get(
-     *     path = "/phones/{page<\d+>?1}",
+     *     path="/phones/{page<\d+>?1}",
      *     name = "app_phone_list",
      *     requirements = {"id"="\d+"}
      * )
+     *
+     * @OA\Response(
+     *      response="202",
+     *      description="List Phones",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Phone::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Phone")
+     *
      * @param $page
      * @return View
      */
@@ -61,6 +101,43 @@ class PhoneController extends AbstractController
      *     name = "app_phone_show",
      *     requirements = {"id"="\d+"}
      * )
+     *
+     * @OA\Response(
+     *      response="202",
+     *      description="Detail Phone",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Phone::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Phone")
+     *
      * @param Phone $phone
      * @return View
      */
@@ -79,6 +156,46 @@ class PhoneController extends AbstractController
      *     converter="fos_rest.request_body"
      * )
      * @IsGranted("ROLE_SUPERADMIN")
+     *
+     * @OA\Response(
+     *      response="201",
+     *      description="Add Phone",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Phone::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\RequestBody(
+     *     request="Add new Phone",
+     *     required=true,
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="brand"),
+     *          @OA\Property(type="string", property="model"),
+     *          @OA\Property(type="string", property="color"),
+     *          @OA\Property(type="string", property="description"),
+     *          @OA\Property(type="integer", property="price")
+     *     )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Phone")
+     *
      * @param Phone $phone
      * @param $violations
      * @return View
@@ -104,6 +221,54 @@ class PhoneController extends AbstractController
      * @ParamConverter("newPhone",
      *     converter="fos_rest.request_body"
      * )
+     *
+     * @OA\Response(
+     *      response="200",
+     *      description="Update Phone",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Phone::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @OA\RequestBody(
+     *     request="Update Phone",
+     *     required=true,
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="brand"),
+     *          @OA\Property(type="string", property="model"),
+     *          @OA\Property(type="string", property="color"),
+     *          @OA\Property(type="string", property="description"),
+     *          @OA\Property(type="integer", property="price")
+     *     )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Phone")
+     *
      * @param Phone $phone
      * @param Phone $newPhone
      * @param $violations
@@ -124,13 +289,44 @@ class PhoneController extends AbstractController
      *     requirements = {"id"="\d+"}
      * )
      * @IsGranted("ROLE_SUPERADMIN")
+     *
+     * @OA\Response(
+     *      response="204",
+     *      description="Delete Phone",
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Phone")
+     *
      * @param Phone $phone
      * @return View
      */
     public function deleteAction(Phone $phone)
     {
-        $this->entityManager->remove($phone);
-        $this->entityManager->flush();
+        $this->phoneService->deleteData($phone);
 
         return View::create($phone, Response::HTTP_NO_CONTENT);
     }

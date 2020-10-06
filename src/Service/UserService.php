@@ -3,7 +3,6 @@
 
 namespace App\Service;
 
-
 use App\Entity\User;
 use App\Exception\ResourceValidationException;
 use App\Repository\ClientRepository;
@@ -13,8 +12,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\View\View;
 use Knp\Component\Pager\Pagination\PaginationInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use OpenApi\Annotations\JsonContent;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Security\Core\Security;
 
 class UserService extends Service
 {
@@ -40,6 +42,14 @@ class UserService extends Service
      * @var UserRepository
      */
     private $userRepository;
+    /**
+     * @var ClientRepository
+     */
+    private $clientRepository;
+    /**
+     * @var Security
+     */
+    private $security;
 
     public function __construct(PhoneRepository $phoneRepository,
                                 ClientRepository $clientRepository,
@@ -47,7 +57,7 @@ class UserService extends Service
                                 UserRepository $userRepository,
                                 PaginatorInterface $paginatorInterface,
                                 ExceptionService $exceptionService,
-                                EntityManagerInterface $entityManager)
+                                EntityManagerInterface $entityManager, Security $security)
     {
         parent::__construct($phoneRepository, $clientRepository, $userRepository, $paginatorInterface, $exceptionService, $entityManager);
 
@@ -55,6 +65,8 @@ class UserService extends Service
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->userRepository = $userRepository;
+        $this->clientRepository = $clientRepository;
+        $this->security = $security;
     }
 
     /**
@@ -95,11 +107,15 @@ class UserService extends Service
     /**
      * @param User $user
      * @param $violations
+     * @param Request $request
      * @throws ResourceValidationException
      */
-    public function addUser(User $user, $violations)
+    public function addUser(User $user, Request $request, $violations)
     {
         $this->exceptionService->invalidJson($violations);
+
+        $client_id = $this->security->getUser()->getClients();
+        $values = json_decode($request->getContent());
 
         $user->getEmail();
         $user->setRoles(['ROLE_USER']);
@@ -109,7 +125,15 @@ class UserService extends Service
                     $user->getPassword()
                 ))
         );
-        $user->setClients($this->getUser()->getClients());
+
+        if ($this->isGranted('ROLE_ADMIN')) {
+                $user->setClients($this->getUser()->getClients());
+            } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
+                $client = $this->clientRepository->findOneBy(['id' => isset($values->client_id) ? $values->client_id : $client_id]);
+                $user->setClients($client);
+            } else {
+            throw $this->createAccessDeniedException();
+        }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
