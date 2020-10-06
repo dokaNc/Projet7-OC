@@ -13,16 +13,14 @@ use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Symfony\Component\Serializer\Serializer;
+use OpenApi\Annotations as OA;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Nelmio\ApiDocBundle\Annotation\Security;
 
 /**
  * Class ClientController
@@ -66,6 +64,43 @@ class ClientController extends AbstractController
      *     requirements = {"id"="\d+"}
      * )
      * @IsGranted("ROLE_SUPERADMIN")
+     *
+     * @OA\Response(
+     *      response="202",
+     *      description="List Clients",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Client::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Client")
+     *
      * @param $page
      * @return View
      */
@@ -83,6 +118,43 @@ class ClientController extends AbstractController
      *     requirements = {"id"="\d+"}
      * )
      * @IsGranted("ROLE_SUPERADMIN")
+     *
+     * @OA\Response(
+     *      response="202",
+     *      description="Detail Client",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Client::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Client")
+     *
      * @param Client $client
      * @return View
      */
@@ -101,6 +173,42 @@ class ClientController extends AbstractController
      *     converter="fos_rest.request_body"
      * )
      * @IsGranted("ROLE_SUPERADMIN")
+     *
+     * @OA\Response(
+     *      response="201",
+     *      description="Add Client",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Client::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\RequestBody(
+     *     request="Add new Client",
+     *     required=true,
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="name"),
+     *     )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Client")
+     *
      * @param Client $client
      * @param $violations
      * @return View
@@ -127,6 +235,50 @@ class ClientController extends AbstractController
      *     "newClient",
      *     converter="fos_rest.request_body"
      * )
+     *
+     * @OA\Response(
+     *      response="200",
+     *      description="Update Client",
+     *      @OA\JsonContent(
+     *           type="array",
+     *           @OA\Items(
+     *                ref=@Model(type=Client::class))
+     *      )
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @OA\RequestBody(
+     *     request="Update Client",
+     *     required=true,
+     *     @OA\JsonContent(
+     *          @OA\Property(type="string", property="name"),
+     *     )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Client")
+     *
      * @param Client $client
      * @param Client $newClient
      * @param $violations
@@ -147,6 +299,38 @@ class ClientController extends AbstractController
      *     requirements = {"id"="\d+"}
      * )
      * @IsGranted("ROLE_SUPERADMIN")
+     *
+     * @OA\Response(
+     *      response="204",
+     *      description="Delete Client",
+     * )
+     * @OA\Response(
+     *      response="401",
+     *      description="JWT Token",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="code", type="integer", example="401"),
+     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="403",
+     *      description="Access",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="403"),
+     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *      )
+     * )
+     * @OA\Response(
+     *      response="404",
+     *      description="Not Found",
+     *      @OA\JsonContent(
+     *           @OA\Property(property="status", type="integer", example="404"),
+     *           @OA\Property(property="messsage", type="string", example="Ressource not found")
+     *      )
+     * )
+     * @Security(name="Bearer")
+     * @OA\Tag(name="Client")
+     *
      * @param Client $client
      * @return View
      */

@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use OpenApi\Annotations as OA;
 
 
 /**
@@ -21,7 +22,10 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "app_client_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(null === object.getId())"
+ *     )
  * )
  *
  * @Hateoas\Relation(
@@ -38,7 +42,10 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "app_client_update",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(null === object.getId())"
+ *     )
  * )
  *
  * @Hateoas\Relation(
@@ -47,12 +54,18 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "app_client_delete",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
- *      )
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(null === object.getId())"
+ *     )
  * )
+ *
+ * @OA\Schema(schema="Client")
  */
 class Client
 {
     /**
+     * @OA\Property(type="integer", description="The ID")
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -60,12 +73,14 @@ class Client
     private $id;
 
     /**
+     * @OA\Property(type="string", description="The name")
      * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank
      */
     private $name;
 
     /**
+     * @OA\Property(type="string", description="The User link to Client")
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="Clients")
      */
     private $users;
@@ -78,6 +93,13 @@ class Client
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): self
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getName(): ?string

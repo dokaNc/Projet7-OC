@@ -27,3 +27,9 @@ services:
     # please note that last definitions always *replace* previous ones
     App\Entity\:
         resource: '../src/Entity'
+
+
+    acme_api.event.authentication_failure_listener:
+        class: App\EventListener\AuthenticationFailureListener
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_failure, method: onAuthenticationFailureResponse }

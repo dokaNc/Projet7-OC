@@ -8,6 +8,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
+use OpenApi\Annotations as OA;
 
 
 /**
@@ -20,6 +21,10 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "app_user_show",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN') and not is_granted('ROLE_ADMIN'))",
+ *          excludeIf = "expr(null === object.getId())"
  *      )
  * )
  *
@@ -28,6 +33,9 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *      href = @Hateoas\Route(
  *          "app_user_create",
  *          absolute = true
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN') and not is_granted('ROLE_ADMIN'))"
  *      )
  * )
  *
@@ -37,12 +45,18 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "app_user_delete",
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute = true
+ *      ),
+ *      exclusion = @Hateoas\Exclusion(
+ *          excludeIf = "expr(null === object.getId())"
  *      )
  * )
+ *
+ * @OA\Schema(schema="User")
  */
 class User implements UserInterface
 {
     /**
+     * @OA\Property(type="integer", description="The ID")
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -50,25 +64,30 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @OA\Property(type="string", description="The email")
      * @ORM\Column(type="string", length=180, unique=true)
+     * @Assert\Email
      * @Assert\NotBlank
      */
     private $email;
 
     /**
+     * @OA\Property(type="string", description="The roles")
      * @ORM\Column(type="json")
      */
     private $roles = [];
 
     /**
-     * @var string The hashed password
+     * @OA\Property(type="string", description="The password")
+     * @var string
      * @ORM\Column(type="string")
      * @Assert\NotBlank
      */
     private $password;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="users")
+     * @OA\Property(type="string", description="The Client link to User")
+     * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="users", cascade={"persist"})
      */
     private $Clients;
 
@@ -90,6 +109,7 @@ class User implements UserInterface
     }
 
     /**
+     * @OA\Property(type="string", property="email")
      * A visual identifier that represents this user.
      *
      * @see UserInterface
@@ -134,6 +154,7 @@ class User implements UserInterface
     }
 
     /**
+     * @OA\Property(type="string", property="password")
      * @see UserInterface
      */
     public function getSalt()
