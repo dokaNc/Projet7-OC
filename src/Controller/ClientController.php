@@ -66,7 +66,7 @@ class ClientController extends AbstractController
      * @IsGranted("ROLE_SUPERADMIN")
      *
      * @OA\Response(
-     *      response="202",
+     *      response="200",
      *      description="List Clients",
      *      @OA\JsonContent(
      *           type="array",
@@ -108,7 +108,7 @@ class ClientController extends AbstractController
     {
         $data = $this->clientService->getAllData($page);
 
-        return View::create($data, Response::HTTP_ACCEPTED);
+        return View::create($data, Response::HTTP_OK);
     }
 
     /**
@@ -120,7 +120,7 @@ class ClientController extends AbstractController
      * @IsGranted("ROLE_SUPERADMIN")
      *
      * @OA\Response(
-     *      response="202",
+     *      response="200",
      *      description="Detail Client",
      *      @OA\JsonContent(
      *           type="array",
@@ -160,7 +160,7 @@ class ClientController extends AbstractController
      */
     public function showAction(Client $client)
     {
-        return View::create($client, Response::HTTP_ACCEPTED);
+        return View::create($client, Response::HTTP_OK);
     }
 
     /**
