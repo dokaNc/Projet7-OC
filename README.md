@@ -4,6 +4,7 @@
 ## Badge
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/7442a45be8344f659760f35a5d7ca000)](https://www.codacy.com/manual/dokaNc/Projet7-OC/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=dokaNc/Projet7-OC&amp;utm_campaign=Badge_Grade)
+[![Maintainability](https://api.codeclimate.com/v1/badges/7a4efc5469ac2a0ff584/maintainability)](https://codeclimate.com/github/dokaNc/Projet7-OC/maintainability)
 
 ## Installation
 ### - Step 1  
