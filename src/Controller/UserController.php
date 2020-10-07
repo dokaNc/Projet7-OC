@@ -225,7 +225,7 @@ class UserController extends AbstractController
     {
         $this->userService->addUser($user, $request, $violations);
 
-        return View::create($user, Response::HTTP_OK);
+        return View::create($user, Response::HTTP_CREATED);
     }
 
     /**
