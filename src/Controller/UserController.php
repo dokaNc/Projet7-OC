@@ -5,10 +5,14 @@ namespace App\Controller;
 
 use App\Entity\User;
 use App\Exception\ResourceValidationException;
+use App\Repository\ClientRepository;
 use App\Repository\UserRepository;
+use App\Service\ExceptionService;
 use App\Service\UserService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
+use JMS\Serializer\SerializerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,13 +22,31 @@ use Symfony\Component\Routing\Annotation\Route;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use OpenApi\Annotations as OA;
-use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security as OAS;
 
 /**
  * Class ClientController
  * @package App\Controller
  * @Route("/api")
+ *
+ * @OAS(name="Bearer")
+ * @OA\Tag(name="User")
+ * @OA\Response(
+ *      response="401",
+ *      description="JWT Token",
+ *      @OA\JsonContent(
+ *           @OA\Property(property="code", type="integer", example="401"),
+ *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+ *      )
+ * )
+ * @OA\Response(
+ *      response="403",
+ *      description="Access",
+ *      @OA\JsonContent(
+ *           @OA\Property(property="status", type="integer", example="403"),
+ *           @OA\Property(property="messsage", type="string", example="Access denied")
+ *      )
+ * )
  */
 
 class UserController extends AbstractController
@@ -66,25 +88,14 @@ class UserController extends AbstractController
      *      response="200",
      *      description="List Users",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=User::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="email"),
+     *                  @OA\Property(type="object", property="_links",
+     *                      @OA\Property(type="object", property="self",
+     *                          @OA\Property(type="string", property="href")
+     *                      )
+     *                  )
+     *          )
      *      )
      * )
      * @OA\Response(
@@ -95,21 +106,21 @@ class UserController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @OAS(name="Bearer")
-     * @OA\Tag(name="User")
      *
      * @param $page
-     * @return View
+     * @param PaginatorInterface $paginator
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function listAction($page)
+    public function listAction($page, PaginatorInterface $paginator, ClientRepository $clientRepository, SerializerInterface $serializer)
     {
-        if ($this->isGranted('ROLE_ADMIN')) {
-            $data = $this->userService->getAllDataClient($page);
-        } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
-            $data = $this->userService->getAllData($page);
-        }
 
-        return View::create($data, Response::HTTP_OK);
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->userService->getAllDataClient($page, $paginator, $clientRepository, $serializer);
+        } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
+            return $this->userService->getAllData($page, $paginator, $clientRepository, $serializer);
+        }
     }
 
     /**
@@ -122,27 +133,23 @@ class UserController extends AbstractController
      *
      * @OA\Response(
      *      response="200",
-     *      description="Detail User",
+     *      description="Details User",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=User::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="email"),
+     *          @OA\Property(type="object", property="_clients",
+     *                  @OA\Property(type="string", property="name"),
+     *                      @OA\Property(type="object", property="_links",
+     *                          @OA\Property(type="object", property="self",
+     *                              @OA\Property(type="string", property="href"),
+     *                      ),
+     *                  ),
+     *          ),
+     *          @OA\Property(type="object", property="_links",
+     *              @OA\Property(type="object", property="self",
+     *                  @OA\Property(type="string", property="href")
+     *              )
+     *          )
      *      )
      * )
      * @OA\Response(
@@ -153,18 +160,15 @@ class UserController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @OAS(name="Bearer")
-     * @OA\Tag(name="User")
      *
      * @param int $id
      * @param User $user
-     * @return View
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function showAction(int $id, User $user)
+    public function showAction(int $id, User $user, SerializerInterface $serializer)
     {
-        $this->userService->getData($user, $id);
-
-        return View::create($user, Response::HTTP_OK);
+        return $this->userService->getData($user, $id, $serializer);
     }
 
     /**
@@ -182,25 +186,21 @@ class UserController extends AbstractController
      *      response="201",
      *      description="Add User",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=User::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="email"),
+     *          @OA\Property(type="object", property="_clients",
+     *                  @OA\Property(type="string", property="name"),
+     *                      @OA\Property(type="object", property="_links",
+     *                          @OA\Property(type="object", property="self",
+     *                              @OA\Property(type="string", property="href"),
+     *                      ),
+     *                  ),
+     *          ),
+     *          @OA\Property(type="object", property="_links",
+     *              @OA\Property(type="object", property="self",
+     *                  @OA\Property(type="string", property="href")
+     *              )
+     *          )
      *      )
      * )
      * @OA\RequestBody(
@@ -212,20 +212,19 @@ class UserController extends AbstractController
      *          @OA\Property(type="integer", property="client_id"),
      *     )
      * )
-     * @OAS(name="Bearer")
-     * @OA\Tag(name="User")
      *
      * @param User $user
      * @param Request $request
+     * @param ExceptionService $exceptionService
      * @param $violations
-     * @return View
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      * @throws ResourceValidationException
      */
-    public function addAction(User $user, Request $request, $violations)
+    public function addAction(User $user, Request $request, ExceptionService $exceptionService, $violations, ClientRepository $clientRepository, SerializerInterface $serializer)
     {
-        $this->userService->addUser($user, $request, $violations);
-
-        return View::create($user, Response::HTTP_CREATED);
+        return $this->userService->addUser($user, $request, $exceptionService, $violations, $clientRepository, $serializer);
     }
 
     /**
@@ -241,22 +240,6 @@ class UserController extends AbstractController
      *      description="Delete User",
      * )
      * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
-     *      )
-     * )
-     * @OA\Response(
      *      response="404",
      *      description="Not Found",
      *      @OA\JsonContent(
@@ -264,8 +247,6 @@ class UserController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @OAS(name="Bearer")
-     * @OA\Tag(name="User")
      *
      * @param User $user
      * @return View

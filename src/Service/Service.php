@@ -73,20 +73,4 @@ class Service extends AbstractController
         );
 
     }
-
-    /**
-     * @param $repositoryName
-     * @param $page
-     * @return PaginationInterface
-     */
-    public function getAllByClients($repositoryName, $page)
-    {
-        return $this->paginatorInterface->paginate(
-            $this->$repositoryName->findBy(
-                ['id' => $this->getUser()->getClients()]
-            ),
-            $page,
-            10
-        );
-    }
 }
