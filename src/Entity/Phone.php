@@ -23,41 +23,6 @@ use OpenApi\Annotations as OA;
  *     )
  * )
  *
- * @Hateoas\Relation(
- *      "create",
- *      href = @Hateoas\Route(
- *          "app_phone_create",
- *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN'))"
- *      )
- * )
- *
- * @Hateoas\Relation(
- *      "modify",
- *      href = @Hateoas\Route(
- *          "app_phone_update",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(null === object.getId())"
- *      )
- * )
- *
- * @Hateoas\Relation(
- *      "delete",
- *      href = @Hateoas\Route(
- *          "app_phone_delete",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(null === object.getId())"
- *      )
- * )
- *
  * @OA\Schema(schema="Phone")
  */
 class Phone

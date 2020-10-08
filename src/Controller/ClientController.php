@@ -11,21 +11,42 @@ use App\Service\ClientService;
 use App\Service\ExceptionService;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use FOS\RestBundle\View\View;
+use JMS\Serializer\SerializerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Annotations as OA;
-use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
+use Nelmio\ApiDocBundle\Annotation\Model;
 
 /**
  * Class ClientController
  * @package App\Controller
  * @Route("/api")
+ *
+ * @Security(name="Bearer")
+ * @OA\Tag(name="Client")
+ * @OA\Response(
+ *      response="401",
+ *      description="JWT Token",
+ *      @OA\JsonContent(
+ *           @OA\Property(property="code", type="integer", example="401"),
+ *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+ *      )
+ * )
+ * @OA\Response(
+ *      response="403",
+ *      description="Access",
+ *      @OA\JsonContent(
+ *           @OA\Property(property="status", type="integer", example="403"),
+ *           @OA\Property(property="messsage", type="string", example="Access denied")
+ *      )
+ * )
+ *
  */
 class ClientController extends AbstractController
 {
@@ -69,25 +90,13 @@ class ClientController extends AbstractController
      *      response="200",
      *      description="List Clients",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=Client::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="name"),
+     *          @OA\Property(type="object", property="_links",
+     *              @OA\Property(type="object", property="self",
+     *                  @OA\Property(type="string", property="href")
+     *              )
+     *          )
      *      )
      * )
      * @OA\Response(
@@ -98,17 +107,17 @@ class ClientController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @Security(name="Bearer")
-     * @OA\Tag(name="Client")
      *
      * @param $page
-     * @return View
+     * @param PaginatorInterface $paginator
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function listAction($page)
+    public function listAction($page, PaginatorInterface $paginator, ClientRepository $clientRepository, SerializerInterface $serializer)
     {
-        $data = $this->clientService->getAllData($page);
+        return $this->clientService->getAllData($page, $paginator, $clientRepository, $serializer);
 
-        return View::create($data, Response::HTTP_OK);
     }
 
     /**
@@ -121,27 +130,26 @@ class ClientController extends AbstractController
      *
      * @OA\Response(
      *      response="200",
-     *      description="Detail Client",
+     *      description="Detail Clients with Users linked",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=Client::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="name"),
+     *          @OA\Property(type="array", property="users",
+     *              @OA\Items(
+     *                  @OA\Property(type="integer", property="id"),
+     *                  @OA\Property(type="string", property="email"),
+     *                      @OA\Property(type="object", property="_links",
+     *                          @OA\Property(type="object", property="self",
+     *                              @OA\Property(type="string", property="href"),
+     *                      ),
+     *                  ),
+     *          ),
+     *     ),
+     *          @OA\Property(type="object", property="_links",
+     *              @OA\Property(type="object", property="self",
+     *                  @OA\Property(type="string", property="href")
+     *              )
+     *          )
      *      )
      * )
      * @OA\Response(
@@ -152,15 +160,15 @@ class ClientController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @Security(name="Bearer")
-     * @OA\Tag(name="Client")
      *
+     * @param int $id
      * @param Client $client
-     * @return View
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function showAction(Client $client)
+    public function showAction(int $id, Client $client, SerializerInterface $serializer)
     {
-        return View::create($client, Response::HTTP_OK);
+        return $this->clientService->getData($id, $serializer);
     }
 
     /**
@@ -178,26 +186,20 @@ class ClientController extends AbstractController
      *      response="201",
      *      description="Add Client",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=Client::class))
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="name"),
+     *                  @OA\Property(type="object", property="_links",
+     *                      @OA\Property(type="object", property="self",
+     *                          @OA\Property(type="string", property="href")
+     *                      )
+     *                  )
+     *          )
      *      )
      * )
      * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
-     *      )
+     *     response=415,
+     *     description="Unsupported Media Type",
+     *     @Model(type=Client::class)
      * )
      * @OA\RequestBody(
      *     request="Add new Client",
@@ -206,22 +208,17 @@ class ClientController extends AbstractController
      *          @OA\Property(type="string", property="name"),
      *     )
      * )
-     * @Security(name="Bearer")
-     * @OA\Tag(name="Client")
      *
      * @param Client $client
+     * @param ExceptionService $exceptionService
      * @param $violations
-     * @return View
+     * @param SerializerInterface $serializer
+     * @return Response
      * @throws ResourceValidationException
      */
-    public function createAction(Client $client, $violations)
+    public function createAction(Client $client, ExceptionService $exceptionService, $violations, SerializerInterface $serializer)
     {
-        $this->clientService->addData($violations, $client);
-
-        return View::create($client, Response::HTTP_CREATED,
-            ['Location' => $this->generateUrl('app_client_show',
-                ['id' => $client->getId(), UrlGeneratorInterface::ABSOLUTE_URL])
-            ]);
+        return $this->clientService->addData($client, $exceptionService, $violations, $serializer);
     }
 
     /**
@@ -240,25 +237,14 @@ class ClientController extends AbstractController
      *      response="200",
      *      description="Update Client",
      *      @OA\JsonContent(
-     *           type="array",
-     *           @OA\Items(
-     *                ref=@Model(type=Client::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
+     *          @OA\Property(type="integer", property="id"),
+     *          @OA\Property(type="string", property="name"),
+     *                  @OA\Property(type="object", property="_links",
+     *                      @OA\Property(type="object", property="self",
+     *                          @OA\Property(type="string", property="href")
+     *                      )
+     *                  )
+     *          )
      *      )
      * )
      * @OA\Response(
@@ -276,20 +262,21 @@ class ClientController extends AbstractController
      *          @OA\Property(type="string", property="name"),
      *     )
      * )
-     * @Security(name="Bearer")
-     * @OA\Tag(name="Client")
      *
      * @param Client $client
      * @param Client $newClient
+     * @param ExceptionService $exceptionService
      * @param $violations
-     * @return mixed
+     * @param SerializerInterface $serializer
+     * @return Response
      * @throws ResourceValidationException
      */
-    public function updateAction(Client $client, Client $newClient, $violations)
+    public function updateAction(Client $client, Client $newClient,
+                                 ExceptionService $exceptionService,
+                                 $violations,
+                                 SerializerInterface $serializer)
     {
-        $this->clientService->updateData($violations, $client, $newClient);
-
-        return View::create($client, Response::HTTP_OK);
+        return $this->clientService->updateData($client, $newClient, $exceptionService, $violations, $serializer);
     }
 
     /**
@@ -305,22 +292,6 @@ class ClientController extends AbstractController
      *      description="Delete Client",
      * )
      * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
-     *      )
-     * )
-     * @OA\Response(
      *      response="404",
      *      description="Not Found",
      *      @OA\JsonContent(
@@ -328,8 +299,6 @@ class ClientController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @Security(name="Bearer")
-     * @OA\Tag(name="Client")
      *
      * @param Client $client
      * @return View

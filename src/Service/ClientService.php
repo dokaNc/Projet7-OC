@@ -10,16 +10,13 @@ use App\Repository\ClientRepository;
 use App\Repository\PhoneRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\Pagination\PaginationInterface;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 class ClientService extends Service
 {
-    /**
-     * @var string
-     */
-    private $repositoryName = 'clientRepository';
-
     /**
      * @var ExceptionService
      */
@@ -29,6 +26,10 @@ class ClientService extends Service
      * @var EntityManagerInterface
      */
     private $entityManager;
+    /**
+     * @var ClientRepository
+     */
+    private $clientRepository;
 
     public function __construct(PhoneRepository $phoneRepository, ClientRepository $clientRepository, UserRepository $userRepository, PaginatorInterface $paginatorInterface, ExceptionService $exceptionService, EntityManagerInterface $entityManager)
     {
@@ -36,56 +37,115 @@ class ClientService extends Service
 
         $this->exceptionService = $exceptionService;
         $this->entityManager = $entityManager;
+        $this->clientRepository = $clientRepository;
     }
 
     /**
      * @param $page
-     * @return PaginationInterface
+     * @param PaginatorInterface $paginator
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function getAllData($page)
+    public function getAllData($page, PaginatorInterface $paginator, ClientRepository $clientRepository, SerializerInterface $serializer)
     {
-        return $this->getAll($this->repositoryName, $page);
+        $info = $paginator->paginate(
+            $clientRepository->findAll(),
+            $page,
+            10
+        );
+
+        $data = $serializer->serialize($info, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'client')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 200, [
+            'Content-Type' => 'application/json'
+        ]);
     }
 
     /**
-     * @param $page
-     * @return PaginationInterface
+     * @param int $id
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function getAllDataByClients($page)
+    public function getData(int $id, SerializerInterface $serializer)
     {
-        return $this->getAllByClients($this->repositoryName, $page);
+        $info = $this->clientRepository->findBy(['id' => $id]);
+
+        $data = $serializer->serialize($info, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'user')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 200, [
+            'Content-Type' => 'application/json'
+        ]);
     }
 
     /**
-     * @param $violations
      * @param Client $client
-     * @return void
+     * @param ExceptionService $exceptionService
+     * @param $violations
+     * @param SerializerInterface $serializer
+     * @return Response
      * @throws ResourceValidationException
      */
-    public function addData($violations, Client $client)
+    public function addData(Client $client,
+                            ExceptionService $exceptionService,
+                            $violations,
+                            SerializerInterface $serializer)
     {
-        $this->exceptionService->invalidJson($violations);
+        $exceptionService->invalidJson($violations);
 
-        $client->setName($client->getName());
+        $client->getName();
 
         $this->entityManager->persist($client);
         $this->entityManager->flush();
+
+        $data = $serializer->serialize($client, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'client')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 201, [
+            'Content-Type' => 'application/json',
+        ]);
     }
 
     /**
-     * @param $violations
      * @param Client $client
      * @param Client $newClient
-     * @return void
+     * @param ExceptionService $exceptionService
+     * @param $violations
+     * @param SerializerInterface $serializer
+     * @return Response
      * @throws ResourceValidationException
      */
-    public function updateData($violations, Client $client, Client $newClient)
+    public function updateData(Client $client, Client $newClient,
+                               ExceptionService $exceptionService,
+                               $violations,
+                               SerializerInterface $serializer)
     {
-        $this->exceptionService->invalidJson($violations);
+        $exceptionService->invalidJson($violations);
 
         $client->setName($newClient->getName());
 
         $this->getDoctrine()->getManager()->flush();
+
+        $data = $serializer->serialize($client, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'client')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 200, [
+            'Content-Type' => 'application/json',
+        ]);
     }
 
     /**

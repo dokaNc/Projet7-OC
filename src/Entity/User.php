@@ -4,12 +4,12 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
 use OpenApi\Annotations as OA;
-
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -23,35 +23,12 @@ use OpenApi\Annotations as OA;
  *          absolute = true
  *      ),
  *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN') and not is_granted('ROLE_ADMIN'))",
- *          excludeIf = "expr(null === object.getId())"
- *      )
- * )
- *
- * @Hateoas\Relation(
- *      "create",
- *      href = @Hateoas\Route(
- *          "app_user_create",
- *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(not is_granted('ROLE_SUPERADMIN') and not is_granted('ROLE_ADMIN'))"
- *      )
- * )
- *
- * @Hateoas\Relation(
- *      "delete",
- *      href = @Hateoas\Route(
- *          "app_user_delete",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      ),
- *      exclusion = @Hateoas\Exclusion(
  *          excludeIf = "expr(null === object.getId())"
  *      )
  * )
  *
  * @OA\Schema(schema="User")
+ *
  */
 class User implements UserInterface
 {
@@ -60,6 +37,7 @@ class User implements UserInterface
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"default", "user", "unique", "one"})
      */
     private $id;
 
@@ -68,12 +46,14 @@ class User implements UserInterface
      * @ORM\Column(type="string", length=180, unique=true)
      * @Assert\Email
      * @Assert\NotBlank
+     * @Groups({"default", "user", "unique", "one"})
      */
     private $email;
 
     /**
      * @OA\Property(type="string", description="The roles")
      * @ORM\Column(type="json")
+     * @Groups({"default"})
      */
     private $roles = [];
 
@@ -82,12 +62,14 @@ class User implements UserInterface
      * @var string
      * @ORM\Column(type="string")
      * @Assert\NotBlank
+     * @Groups({"default"})
      */
     private $password;
 
     /**
      * @OA\Property(type="string", description="The Client link to User")
      * @ORM\ManyToOne(targetEntity=Client::class, inversedBy="users", cascade={"persist"})
+     * @Groups({"default", "user", "unique"})
      */
     private $Clients;
 

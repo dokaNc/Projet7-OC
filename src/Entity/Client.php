@@ -10,7 +10,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Validator\Constraints as Assert;
 use Hateoas\Configuration\Annotation as Hateoas;
 use OpenApi\Annotations as OA;
-
+use JMS\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=ClientRepository::class)
@@ -28,39 +28,9 @@ use OpenApi\Annotations as OA;
  *     )
  * )
  *
- * @Hateoas\Relation(
- *      "create",
- *      href = @Hateoas\Route(
- *          "app_client_create",
- *          absolute = true
- *      )
- * )
- *
- * @Hateoas\Relation(
- *      "modify",
- *      href = @Hateoas\Route(
- *          "app_client_update",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      ),
- *     exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(null === object.getId())"
- *     )
- * )
- *
- * @Hateoas\Relation(
- *      "delete",
- *      href = @Hateoas\Route(
- *          "app_client_delete",
- *          parameters = { "id" = "expr(object.getId())" },
- *          absolute = true
- *      ),
- *     exclusion = @Hateoas\Exclusion(
- *          excludeIf = "expr(null === object.getId())"
- *     )
- * )
  *
  * @OA\Schema(schema="Client")
+ *
  */
 class Client
 {
@@ -69,6 +39,7 @@ class Client
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"default", "user", "client"})
      */
     private $id;
 
@@ -76,12 +47,14 @@ class Client
      * @OA\Property(type="string", description="The name")
      * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank
+     * @Groups({"default", "user", "unique", "client"})
      */
     private $name;
 
     /**
      * @OA\Property(type="string", description="The User link to Client")
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="Clients")
+     * @Groups({"default", "user"})
      */
     private $users;
 
@@ -102,6 +75,9 @@ class Client
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getName(): ?string
     {
         return $this->name;

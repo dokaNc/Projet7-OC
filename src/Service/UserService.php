@@ -9,10 +9,9 @@ use App\Repository\ClientRepository;
 use App\Repository\PhoneRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use FOS\RestBundle\View\View;
-use Knp\Component\Pager\Pagination\PaginationInterface;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Knp\Component\Pager\PaginatorInterface;
-use OpenApi\Annotations\JsonContent;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -20,11 +19,6 @@ use Symfony\Component\Security\Core\Security;
 
 class UserService extends Service
 {
-    /**
-     * @var string
-     */
-    private $repositoryName = 'clientRepository';
-
     /**
      * @var ExceptionService
      */
@@ -50,6 +44,14 @@ class UserService extends Service
      * @var Security
      */
     private $security;
+    /**
+     * @var PaginatorInterface
+     */
+    private $paginatorInterface;
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
 
     public function __construct(PhoneRepository $phoneRepository,
                                 ClientRepository $clientRepository,
@@ -57,7 +59,9 @@ class UserService extends Service
                                 UserRepository $userRepository,
                                 PaginatorInterface $paginatorInterface,
                                 ExceptionService $exceptionService,
-                                EntityManagerInterface $entityManager, Security $security)
+                                EntityManagerInterface $entityManager,
+                                Security $security,
+                                SerializerInterface $serializer)
     {
         parent::__construct($phoneRepository, $clientRepository, $userRepository, $paginatorInterface, $exceptionService, $entityManager);
 
@@ -67,54 +71,126 @@ class UserService extends Service
         $this->userRepository = $userRepository;
         $this->clientRepository = $clientRepository;
         $this->security = $security;
+        $this->paginatorInterface = $paginatorInterface;
+        $this->serializer = $serializer;
     }
 
     /**
      * @param $page
-     * @return PaginationInterface
+     * @param PaginatorInterface $paginator
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function getAllData($page)
+    public function getAllData($page, PaginatorInterface $paginator, ClientRepository $clientRepository, SerializerInterface $serializer)
     {
-        return $this->getAll($this->repositoryName, $page);
+        $info = $paginator->paginate(
+            $this->userRepository->findAll(),
+            $page,
+            10
+        );
+
+        $data = $serializer->serialize($info, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'one')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 200, [
+            'Content-Type' => 'application/json'
+        ]);
     }
 
     /**
      * @param $page
-     * @return PaginationInterface
+     * @param PaginatorInterface $paginator
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function getAllDataClient($page)
+    public function getAllDataClient($page, PaginatorInterface $paginator, ClientRepository $clientRepository, SerializerInterface $serializer)
     {
-        return $this->getAllByClients($this->repositoryName, $page);
+        $info = $paginator->paginate(
+            $clientRepository->findBy(
+                ['id' => $this->getUser()->getClients()]
+            ),
+            $page,
+            10
+        );
+
+        $data = $serializer->serialize($info, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'user')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 200, [
+            'Content-Type' => 'application/json'
+        ]);
     }
 
     /**
      * @param User $user
      * @param int $id
-     * @return View
+     * @param SerializerInterface $serializer
+     * @return Response
      */
-    public function getData(User $user, int $id)
+    public function getData(User $user, int $id, SerializerInterface $serializer)
     {
         if ($this->isGranted('ROLE_ADMIN')) {
             if ($userClient = $this->getUser()->getClients() === $user->getClients()) {
-                $userClient = $this->userRepository->findBy(['id' => $id]);
-                return View::create($userClient, Response::HTTP_ACCEPTED);
+                $info = $this->userRepository->findBy(['id' => $id]);
+
+                $data = $serializer->serialize($info, 'json',
+                    SerializationContext::create()->setGroups(array('Default', 'unique')));
+
+                $response = new Response($data);
+                $response->headers->set('Content-Type', 'application/json');
+
+                return new Response($data, 200, [
+                    'Content-Type' => 'application/json'
+                ]);
             } else {
                 throw $this->createAccessDeniedException();
             }
         }
+
+            if ($this->isGranted('ROLE_SUPERADMIN')) {
+                $info = $this->userRepository->findBy(['id' => $id]);
+
+                $data = $serializer->serialize($info, 'json',
+                    SerializationContext::create()->setGroups(array('Default', 'unique')));
+
+                $response = new Response($data);
+                $response->headers->set('Content-Type', 'application/json');
+
+                return new Response($data, 200, [
+                    'Content-Type' => 'application/json'
+                ]);
+            } else {
+                throw $this->createAccessDeniedException();
+            }
     }
 
     /**
      * @param User $user
-     * @param $violations
      * @param Request $request
+     * @param ExceptionService $exceptionService
+     * @param $violations
+     * @param ClientRepository $clientRepository
+     * @param SerializerInterface $serializer
+     * @return Response
      * @throws ResourceValidationException
      */
-    public function addUser(User $user, Request $request, $violations)
+    public function addUser(User $user, Request $request,
+                            ExceptionService $exceptionService,
+                            $violations,
+                            ClientRepository $clientRepository,
+                            SerializerInterface $serializer)
     {
-        $this->exceptionService->invalidJson($violations);
+        $exceptionService->invalidJson($violations);
 
-        $client_id = $this->security->getUser()->getClients();
+        $client_id = $this->getUser()->getClients();
         $values = json_decode($request->getContent());
 
         $user->getEmail();
@@ -122,21 +198,31 @@ class UserService extends Service
         $user->setPassword(
             $this->passwordEncoder->encodePassword(
                 $user, (
-                    $user->getPassword()
-                ))
+            $user->getPassword()
+            ))
         );
 
         if ($this->isGranted('ROLE_ADMIN')) {
-                $user->setClients($this->getUser()->getClients());
-            } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
-                $client = $this->clientRepository->findOneBy(['id' => isset($values->client_id) ? $values->client_id : $client_id]);
-                $user->setClients($client);
-            } else {
+            $user->setClients($this->getUser()->getClients());
+        } elseif ($this->isGranted('ROLE_SUPERADMIN')) {
+            $client = $clientRepository->findOneBy(['id' => isset($values->client_id) ? $values->client_id : $client_id]);
+            $user->setClients($client);
+        } else {
             throw $this->createAccessDeniedException();
         }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        $data = $serializer->serialize($user, 'json',
+            SerializationContext::create()->setGroups(array('Default', 'unique')));
+
+        $response = new Response($data);
+        $response->headers->set('Content-Type', 'application/json');
+
+        return new Response($data, 201, [
+            'Content-Type' => 'application/json'
+        ]);
     }
 
     /**

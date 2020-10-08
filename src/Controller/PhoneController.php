@@ -23,6 +23,25 @@ use Nelmio\ApiDocBundle\Annotation\Security;
  * Class PhoneController
  * @package App\Controller
  * @Route("/api")
+ *
+ * @Security(name="Bearer")
+ * @OA\Tag(name="Phone")
+ * @OA\Response(
+ *      response="401",
+ *      description="JWT Token",
+ *      @OA\JsonContent(
+ *           @OA\Property(property="code", type="integer", example="401"),
+ *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
+ *      )
+ * )
+ * @OA\Response(
+ *      response="403",
+ *      description="Access",
+ *      @OA\JsonContent(
+ *           @OA\Property(property="status", type="integer", example="403"),
+ *           @OA\Property(property="messsage", type="string", example="Access denied")
+ *      )
+ * )
  */
 
 class PhoneController extends AbstractController
@@ -59,22 +78,6 @@ class PhoneController extends AbstractController
      *      )
      * )
      * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
-     *      )
-     * )
-     * @OA\Response(
      *      response="404",
      *      description="Not Found",
      *      @OA\JsonContent(
@@ -82,8 +85,6 @@ class PhoneController extends AbstractController
      *           @OA\Property(property="messsage", type="string", example="Ressource not found")
      *      )
      * )
-     * @Security(name="Bearer")
-     * @OA\Tag(name="Phone")
      *
      * @param $page
      * @return View
@@ -109,22 +110,6 @@ class PhoneController extends AbstractController
      *           type="array",
      *           @OA\Items(
      *                ref=@Model(type=Phone::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
      *      )
      * )
      * @OA\Response(
@@ -164,22 +149,6 @@ class PhoneController extends AbstractController
      *           type="array",
      *           @OA\Items(
      *                ref=@Model(type=Phone::class))
-     *      )
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
      *      )
      * )
      * @OA\RequestBody(
@@ -232,22 +201,6 @@ class PhoneController extends AbstractController
      *      )
      * )
      * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
-     *      )
-     * )
-     * @OA\Response(
      *      response="404",
      *      description="Not Found",
      *      @OA\JsonContent(
@@ -293,22 +246,6 @@ class PhoneController extends AbstractController
      * @OA\Response(
      *      response="204",
      *      description="Delete Phone",
-     * )
-     * @OA\Response(
-     *      response="401",
-     *      description="JWT Token",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="code", type="integer", example="401"),
-     *           @OA\Property(property="messsage", type="string", example="JWT Token not found / Invalid JWT Token")
-     *      )
-     * )
-     * @OA\Response(
-     *      response="403",
-     *      description="Access",
-     *      @OA\JsonContent(
-     *           @OA\Property(property="status", type="integer", example="403"),
-     *           @OA\Property(property="messsage", type="string", example="Access denied")
-     *      )
      * )
      * @OA\Response(
      *      response="404",
